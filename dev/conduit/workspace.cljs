@@ -1,6 +1,6 @@
 (ns conduit.workspace
   (:require [nubank.workspaces.core :as ws]
-            [conduit.client :as conduit]
+            [conduit.app.client :as conduit]
             [nubank.workspaces.card-types.fulcro3 :as ctf3]))
 
 (ws/defcard header

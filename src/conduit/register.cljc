@@ -5,8 +5,8 @@
             [goog.object :as gobj]))
 
 (defn fetch
-  [{:conduit.client/keys [jwt api-url]} {::keys [path method body]
-                                         :or    {method "GET"}}]
+  [{:conduit.app.client/keys [jwt api-url]} {::keys [path method body]
+                                             :or    {method "GET"}}]
   (let [authorization (some-> jwt
                               deref
                               (->> (str "Token ")))
@@ -61,44 +61,44 @@
 
 (def register
   [(pc/constantly-resolver
-     :conduit.client/feed-toggle [{:conduit.feed-button/label "Your Feed"
-                                   :conduit.feed-button/href  (str "#/home")}
-                                  {:conduit.feed-button/label "Global Feed"
-                                   :conduit.feed-button/href  (str "#/home")}])
+     :conduit.app.client/feed-toggle [{:conduit.feed-button/label "Your Feed"
+                                       :conduit.feed-button/href  (str "#/home")}
+                                      {:conduit.feed-button/label "Global Feed"
+                                       :conduit.feed-button/href  (str "#/home")}])
    (pc/resolver `top-routes
-                {::pc/output [:conduit.client/top-routes]}
+                {::pc/output [:conduit.app.client/top-routes]}
                 (fn [{:keys [parser]
                       :as   env} _]
                   (async/go
-                    {:conduit.client/top-routes (let [{:conduit.profile/keys [username
-                                                                              image]} (-> (parser env [{:conduit.client/my-profile [:conduit.profile/username
-                                                                                                                                    :conduit.profile/image]}])
-                                                                                          async/<!
-                                                                                          :conduit.client/my-profile)]
-                                                  (if username
-                                                    [{:conduit.client/label "Home"
-                                                      :conduit.client/path  "#/home"}
-                                                     {:conduit.client/label "New Post"
-                                                      :conduit.client/icon  "ion-compose"
-                                                      :conduit.client/path  "#/editor"}
-                                                     {:conduit.client/label "Settings"
-                                                      :conduit.client/icon  "ion-gear-a"
-                                                      :conduit.client/path  (str "#/settings")}
-                                                     {:conduit.client/label username
-                                                      :conduit.client/img   image
-                                                      :conduit.client/path  (str "#/profile/" username)}]
-                                                    [{:conduit.client/label "Home"
-                                                      :conduit.client/path  "#/home"}
-                                                     {:conduit.client/label "Sign up"
-                                                      :conduit.client/path  "#/register"}
-                                                     {:conduit.client/label "Sign in"
-                                                      :conduit.client/path  "#/login"}]))})))
+                    {:conduit.app.client/top-routes (let [{:conduit.profile/keys [username
+                                                                                  image]} (-> (parser env [{:conduit.app.client/my-profile [:conduit.profile/username
+                                                                                                                                            :conduit.profile/image]}])
+                                                                                              async/<!
+                                                                                              :conduit.app.client/my-profile)]
+                                                      (if username
+                                                        [{:conduit.app.client/label "Home"
+                                                          :conduit.app.client/path  "#/home"}
+                                                         {:conduit.app.client/label "New Post"
+                                                          :conduit.app.client/icon  "ion-compose"
+                                                          :conduit.app.client/path  "#/editor"}
+                                                         {:conduit.app.client/label "Settings"
+                                                          :conduit.app.client/icon  "ion-gear-a"
+                                                          :conduit.app.client/path  (str "#/settings")}
+                                                         {:conduit.app.client/label username
+                                                          :conduit.app.client/img   image
+                                                          :conduit.app.client/path  (str "#/profile/" username)}]
+                                                        [{:conduit.app.client/label "Home"
+                                                          :conduit.app.client/path  "#/home"}
+                                                         {:conduit.app.client/label "Sign up"
+                                                          :conduit.app.client/path  "#/register"}
+                                                         {:conduit.app.client/label "Sign in"
+                                                          :conduit.app.client/path  "#/login"}]))})))
    (pc/mutation `conduit.profile/login
                 {::pc/params [:conduit.profile/password
                               :conduit.profile/email]
                  ::pc/output []}
-                (fn [{:conduit.client/keys [jwt]
-                      :as                  env} {:conduit.profile/keys [email password]}]
+                (fn [{:conduit.app.client/keys [jwt]
+                      :as                      env} {:conduit.profile/keys [email password]}]
                   (let [body #js {:user #js{:email    email
                                             :password password}}]
                     (async/go
@@ -112,10 +112,10 @@
                         (when token
                           (reset! jwt token))
                         (cond-> my-profile
-                                errors (assoc :conduit.client/errors (for [[k vs] errors
-                                                                           v vs]
-                                                                       {:conduit.error/id      (str (gensym "conduit.error"))
-                                                                        :conduit.error/message (str k ": " v)}))
+                                errors (assoc :conduit.app.client/errors (for [[k vs] errors
+                                                                               v vs]
+                                                                           {:conduit.error/id      (str (gensym "conduit.error"))
+                                                                            :conduit.error/message (str k ": " v)}))
                                 (empty? errors) (assoc :conduit.redirect/path "#/home")))))))
    #_(pc/constantly-resolver :conduit.redirect/path nil)
    (pc/mutation `conduit.profile/register
@@ -123,8 +123,8 @@
                               :conduit.profile/email
                               :conduit.profile/username]
                  ::pc/output []}
-                (fn [{:conduit.client/keys [jwt]
-                      :as                  env} {:conduit.profile/keys [email password username]}]
+                (fn [{:conduit.app.client/keys [jwt]
+                      :as                      env} {:conduit.profile/keys [email password username]}]
                   (let [body #js {:user #js{:email    email
                                             :username username
                                             :password password}}]
@@ -139,12 +139,12 @@
                         (when token
                           (reset! jwt token))
                         (cond-> my-profile
-                                errors (assoc :conduit.client/errors (for [[k vs] errors
-                                                                           v vs]
-                                                                       {:conduit.error/id      (str (gensym "conduit.error"))
-                                                                        :conduit.error/message (str k ": " v)}))
+                                errors (assoc :conduit.app.client/errors (for [[k vs] errors
+                                                                               v vs]
+                                                                           {:conduit.error/id      (str (gensym "conduit.error"))
+                                                                            :conduit.error/message (str k ": " v)}))
                                 (empty? errors) (assoc :conduit.redirect/path "#/home")))))))
-   (pc/constantly-resolver :conduit.client/waiting? false)
+   (pc/constantly-resolver :conduit.app.client/waiting? false)
    (pc/resolver `article
                 {::pc/input  #{:conduit.article/slug}
                  ::pc/output [:conduit.article/body
@@ -184,15 +184,15 @@
                                                       :conduit.comment/created-at (new js/Date createdAt)
                                                       :conduit.comment/updated-at (new js/Date updatedAt)}))}))))
    (pc/resolver `current-user
-                {::pc/output [:conduit.client/my-profile]}
-                (fn [{:conduit.client/keys [jwt]
-                      :as                  env} _]
+                {::pc/output [:conduit.app.client/my-profile]}
+                (fn [{:conduit.app.client/keys [jwt]
+                      :as                      env} _]
                   (when @jwt
                     (async/go
                       (let [result (async/<! (fetch env {::path (str "/user")}))
                             {:strs [user]} (js->clj result)]
-                        {:conduit.client/my-profile (assoc (qualify-profile user)
-                                                      :conduit.profile/me? true)})))))
+                        {:conduit.app.client/my-profile (assoc (qualify-profile user)
+                                                          :conduit.profile/me? true)})))))
    (pc/resolver `profile
                 {::pc/input  #{:conduit.profile/username}
                  ::pc/output [:conduit.profile/bio
@@ -222,20 +222,20 @@
                      :conduit.profile/favorites-articles-count (count favs)})))
 
    (pc/resolver `popular-tags
-                {::pc/output [:conduit.client/popular-tags]}
+                {::pc/output [:conduit.app.client/popular-tags]}
                 (fn [ctx _]
                   (async/go
                     (let [result (async/<! (fetch ctx {::path "/tags"}))
                           {:strs [tags]} (js->clj result)]
-                      {:conduit.client/popular-tags (for [tag tags]
-                                                      {:conduit.tag/tag tag})}))))
+                      {:conduit.app.client/popular-tags (for [tag tags]
+                                                          {:conduit.tag/tag tag})}))))
    (pc/resolver `articles
-                {::pc/output [:conduit.client/articles]}
+                {::pc/output [:conduit.app.client/articles]}
                 (fn [ctx _]
                   (async/go
                     (let [result (async/<! (fetch ctx {::path "/articles"}))
                           {:strs [articlesCount
                                   articles]} (js->clj result)]
-                      {:conduit.client/articles-count articlesCount
-                       :conduit.client/articles       (for [article articles]
-                                                        (qualify-article article))}))))])
+                      {:conduit.app.client/articles-count articlesCount
+                       :conduit.app.client/articles       (for [article articles]
+                                                            (qualify-article article))}))))])
